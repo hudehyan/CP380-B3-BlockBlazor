@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Net.Http;
 using Microsoft.Extensions.Configuration;
+using CP380_B1_BlockList.Models;
 
 namespace CP380_B3_BlockBlazor.Data
 {
@@ -14,6 +15,29 @@ namespace CP380_B3_BlockBlazor.Data
         //       - httpClient
         //       - configuration
         //
+        static HttpClient httpClient;
+        private readonly IConfiguration config;
+        private JsonSerializerOptions options;
+        private JsonSerializerOptions jsp = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+
+        public BlockService(IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        {
+            httpClient = httpClientFactory.CreateClient();
+            config = configuration.GetSection("BlockService");
+        }
+        public  async Task<IList<Block>> Get()
+        {
+            var response = await httpClient.GetAsync(config["url"]);
+            if(response.IsSuccessStatusCode)
+            {
+                JsonSerializerOptions op = new(JsonSerializerDefaults.Web);
+                return await JsonSerializer.DeserializeAsync<IList<Block>>(
+                    await response.Content.ReadAsStreamAsync(),options
+                    );
+                    
+            }
+            return Array.Empty<Block>();
+        }
 
         //
         // TODO: Add a constructor with IConfiguration and IHttpClientFactory arguments
@@ -25,5 +49,5 @@ namespace CP380_B3_BlockBlazor.Data
         //
 
     }
-}
+
 }
